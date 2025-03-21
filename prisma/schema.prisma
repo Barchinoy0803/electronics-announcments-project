@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id   String @id @default(uuid())
+  name String
+  User User[]
+}
+
+model User {
+  id         String    @id @default(uuid())
+  firstname  String
+  lastname   String
+  phone      String
+  password   String
+  email      String
+  image      String?
+  lastOnline DateTime
+  role       USER_ROLE @default(USER)
+  regionId   String
+  region     Region    @relation(fields: [regionId], references: [id])
+}
+
+enum USER_ROLE {
+  ADMIN
+  SUPERADMIN
+  USER
+}

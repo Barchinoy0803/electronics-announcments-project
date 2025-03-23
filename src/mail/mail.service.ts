@@ -1,26 +1,36 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMailDto } from './dto/create-mail.dto';
-import { UpdateMailDto } from './dto/update-mail.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { totp } from 'otplib';
 
 @Injectable()
 export class MailService {
-  create(createMailDto: CreateMailDto) {
-    return 'This action adds a new mail';
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService
+  ) {
+    totp.options = { step: 600, digits: 6 }
   }
 
-  findAll() {
-    return `This action returns all mail`;
+  async sendOtpToEmail(email: string) {
+    try {
+      const OTP_SECRET = this.configService.get<string>('OTP_SECRET')
+      const otp = totp.generate(OTP_SECRET!)
+      await this.mailerService.sendMail({
+        to: email,
+        subject: "OTP verification",
+        html: `<h1>Your otp is <strong>${otp}</strong></h1><p>This otp is valid for 10 minutes</p>`
+      })
+      return { message: "Otp send successfully✅" }
+    } catch (error) {
+      return new BadRequestException(error)
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} mail`;
-  }
-
-  update(id: number, updateMailDto: UpdateMailDto) {
-    return `This action updates a #${id} mail`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} mail`;
+  async activate(otp: string) {
+    const OTP_SECRET = this.configService.get<string>('OTP_SECRET')
+    const isValid = totp.check(otp, OTP_SECRET!)
+    if (!isValid) return { message: "Invalid otp" }
+    return { message: "Your otp is successfully verified✅" }
   }
 }

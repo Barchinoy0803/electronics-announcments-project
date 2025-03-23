@@ -13,22 +13,161 @@ model Region {
   User User[]
 }
 
+model Color {
+  id      String    @id @default(uuid())
+  name    String
+  Product Product[]
+  Order   Order[]
+}
+
+model Category {
+  id      String    @id @default(uuid())
+  name    String
+  type    TYPE
+  Product Product[]
+}
+
 model User {
-  id         String    @id @default(uuid())
-  firstname  String
-  lastname   String
-  phone      String
-  password   String
-  email      String
-  image      String?
-  lastOnline DateTime
-  role       USER_ROLE @default(USER)
-  regionId   String
-  region     Region    @relation(fields: [regionId], references: [id])
+  id            String      @id @default(uuid())
+  firstname     String
+  lastname      String
+  phone         String
+  password      String
+  email         String      @unique
+  image         String?
+  lastOnline    DateTime    @default(now())
+  location      String
+  role          USER_ROLE   @default(USER)
+  regionId      String
+  region        Region      @relation(fields: [regionId], references: [id])
+  status        USER_STATUS @default(INACTIVE)
+  createdAt     DateTime    @default(now())
+  Comment       Comment[]
+  Likes         Likes[]
+  Views         Views[]
+  Order         Order[]
+  sentChats     Chat[]      @relation("Sender")
+  receivedChats Chat[]      @relation("Receiver")
+  Session       Session[]
+  Product       Product[]
+}
+
+model Session {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id           String          @id @default(uuid())
+  name         String
+  description  String
+  price        Int
+  type         TYPE
+  condition    CONDITION_TYPE
+  isNegotiable Boolean
+  count        Int
+  image        String
+  status       PRODUCT_STATUS? @default(PENDING)
+  colorId      String
+  color        Color           @relation(fields: [colorId], references: [id])
+  categoryId   String
+  category     Category        @relation(fields: [categoryId], references: [id])
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  Comment      Comment[]
+  Likes        Likes[]
+  Views        Views[]
+  Order        Order[]
+}
+
+model Comment {
+  id        String  @id @default(uuid())
+  text      String
+  star      Int
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Likes {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Views {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  date      DateTime @default(now())
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  date      DateTime @default(now())
+  count     Int
+  colorId   String
+  color     Color    @relation(fields: [colorId], references: [id])
+}
+
+model Chat {
+  id      String   @id @default(uuid())
+  message String
+  fromId  String
+  from    User     @relation(name: "Sender", fields: [fromId], references: [id])
+  toId    String
+  to      User     @relation(name: "Receiver", fields: [toId], references: [id])
+  time    DateTime @default(now())
+}
+
+model AboutSite {
+  id               String @id @default(uuid())
+  description      String
+  privacy_policy   String
+  terms_of_service String
+  email            String
+  supportEmail     String
+  phone            String
+  supportPhone     String
+  telegramLink     String
+  facebookLink     String
 }
 
 enum USER_ROLE {
   ADMIN
   SUPERADMIN
   USER
+}
+
+enum USER_STATUS {
+  ACTIVE
+  INACTIVE
+}
+
+enum TYPE {
+  PHONE
+  LAPTOP
+  ELECTRONIC
+  ACCESSORY
+}
+
+enum CONDITION_TYPE {
+  OLD
+  NEW
+}
+
+enum PRODUCT_STATUS {
+  PENDING
+  ACTIVE
+  FAIL
 }

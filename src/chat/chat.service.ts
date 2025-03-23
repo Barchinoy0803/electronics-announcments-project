@@ -1,26 +1,76 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Request } from 'express';
 
 @Injectable()
 export class ChatService {
-  create(createChatDto: CreateChatDto) {
-    return 'This action adds a new chat';
+  constructor(private readonly prisma: PrismaService) { }
+
+  async create(createChatDto: CreateChatDto, req: Request) {
+    try {
+      let { fromId } = req['user']
+      let chat = await this.prisma.chat.create({ data: { ...createChatDto, fromId } })
+      return chat
+    } catch (error) {
+      return new BadRequestException(error)
+    }
   }
 
-  findAll() {
-    return `This action returns all chat`;
+  async findAll() {
+    try {
+      let chats = await this.prisma.chat.findMany({
+        include: {
+          from: true,
+          to: true
+        }
+      })
+      if (!chats.length) return new HttpException("Empty", HttpStatus.NOT_FOUND)
+      return chats
+    } catch (error) {
+      return new BadRequestException(error)
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} chat`;
+  async findOne(id: string) {
+    try {
+      let chat = await this.prisma.chat.findUnique({
+        where: { id },
+        include: {
+          from: true,
+          to: true
+        }
+      })
+      if (!chat) return new HttpException("Empty", HttpStatus.NOT_FOUND)
+      return chat
+    } catch (error) {
+      return new BadRequestException(error)
+    }
   }
 
-  update(id: number, updateChatDto: UpdateChatDto) {
-    return `This action updates a #${id} chat`;
+  async update(id: string, updateChatDto: UpdateChatDto) {
+    try {
+      let updated = await this.prisma.chat.update({
+        data: updateChatDto,
+        where: { id }
+      })
+      return updated
+    } catch (error) {
+      return new BadRequestException(error)
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} chat`;
+  async remove(id: string) {
+    try {
+      await this.prisma.chat.delete({ where: { id } })
+      return {message: "Successfully deleted!"}
+    } catch (error) {
+      return new BadRequestException(error)
+    }
+  }
+
+  async getChatsByUser(){
+
   }
 }

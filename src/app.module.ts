@@ -16,10 +16,13 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { MailModule } from './mail/mail.module';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [UserModule, ProductModule, RegionModule, AboutSiteModule, CommentModule, LikesModule, ViewsModule, OrderModule, ChatModule, ColorModule, CategoryModule, FileUploadModule, MailModule, PrismaModule],
+  imports: [UserModule, ProductModule, RegionModule, AboutSiteModule, CommentModule, LikesModule, ViewsModule, OrderModule, ChatModule, ColorModule, CategoryModule, FileUploadModule, MailModule, PrismaModule,
+    ConfigModule.forRoot({ isGlobal: true })
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -23,4 +23,8 @@ export class ViewsService {
   remove(id: number) {
     return `This action removes a #${id} view`;
   }
+
+  async lastViewed(){
+
+  }
 }

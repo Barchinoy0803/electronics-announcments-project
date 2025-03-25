@@ -3,10 +3,14 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationGateway } from 'src/chat/chat.gateway';
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notification: NotificationGateway
+  ) { }
   async create(createOrderDto: CreateOrderDto, req: Request) {
     try {
       let userId = req['user']?.id;
@@ -38,6 +42,7 @@ export class OrderService {
         where: { id: createOrderDto.productId },
       });
 
+      this.notification.sendOrderNotification(product)
       return order;
     } catch (error) {
       console.log(error);
